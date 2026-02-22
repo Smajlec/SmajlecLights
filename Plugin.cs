@@ -7,11 +7,13 @@ using UnityEngine;
 
 namespace SmajlecLights;
 
-[BepInPlugin("com.smajlec.lights", "SmajlecLights", "1.0.0")]
+[BepInPlugin("com.smajlec.lights", "SmajlecLights", "1.1.0")]
 public class Plugin : BaseUnityPlugin
 {
     // Config
     public static ConfigEntry<bool> FixEnabled { get; set; }
+    public static ConfigEntry<float> Brightness { get; set; }
+    public static ConfigEntry<float> Exposure { get; set; }
 
     // Plugin stuff
     public static ManualLogSource LogSource;
@@ -33,8 +35,24 @@ public class Plugin : BaseUnityPlugin
 
     private void Start()
     {
-        FixEnabled = Config.Bind("Main", "Enabled", true);
-        FixEnabled.SettingChanged += FixEnabledOnSettingChanged;
+        FixEnabled = Config.Bind("Main", "Enabled", true, new ConfigDescription("Enable post-processing tweaks", tags: new ConfigurationManagerAttributes
+        {
+            Order = 1000
+        }));
+
+        Brightness = Config.Bind("Main", "Brightness", 1.0f, new ConfigDescription("Added brightness", new AcceptableValueRange<float>(0f, 1f), new ConfigurationManagerAttributes
+        {
+            Order = 999
+        }));
+        Exposure = Config.Bind("Main", "Exposure", .3f, new ConfigDescription("Extended exposure range, mainly affects dark areas", new AcceptableValueRange<float>(0f, .5f), new ConfigurationManagerAttributes
+        {
+            Order = 998
+        }));
+
+        FixEnabled.SettingChanged += OnSettingsChanged;
+
+        Brightness.SettingChanged += OnSettingsChanged;
+        Exposure.SettingChanged += OnSettingsChanged;
     }
 
 #if DEBUG
@@ -48,10 +66,13 @@ public class Plugin : BaseUnityPlugin
 
     private void OnDestroy()
     {
-        FixEnabled.SettingChanged -= FixEnabledOnSettingChanged;
+        FixEnabled.SettingChanged -= OnSettingsChanged;
+
+        Brightness.SettingChanged -= OnSettingsChanged;
+        Exposure.SettingChanged -= OnSettingsChanged;
     }
 
-    private void FixEnabledOnSettingChanged(object sender, EventArgs e) => LightsToggled?.Invoke(FixEnabled.Value);
+    private void OnSettingsChanged(object sender, EventArgs e) => LightsToggled?.Invoke(FixEnabled.Value);
 
     // Data
     public static MapData GetMapData(string mapSceneName)

@@ -42,9 +42,9 @@ public class LightingFixer : MonoBehaviour
         var newSettings = new CameraSettings
         {
             ToneType = TonemapType.ACES,
-            Tonemap = mapData.Tonemap + new Vector3(0f, 1f, 0f),
+            Tonemap = mapData.Tonemap + new Vector3(0f, Plugin.Brightness.Value, 0f),
             SecondaryTonemap = mapData.SecondaryTonemap,
-            ExposureUpperLimit = 1.2f,
+            ExposureUpperLimit = .9f + Plugin.Exposure.Value,
             UseVignette = false,
 
             TodScatteringDensity = 0.002f,
