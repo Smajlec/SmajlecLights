@@ -7,11 +7,12 @@ using UnityEngine;
 
 namespace SmajlecLights;
 
-[BepInPlugin("com.smajlec.lights", "SmajlecLights", "1.1.0")]
+[BepInPlugin("com.smajlec.lights", "SmajlecLights", "1.2.0")]
 public class Plugin : BaseUnityPlugin
 {
     // Config
     public static ConfigEntry<bool> FixEnabled { get; set; }
+    public static ConfigEntry<KeyboardShortcut> Hotkey { get; set; }
     public static ConfigEntry<float> Brightness { get; set; }
     public static ConfigEntry<float> Exposure { get; set; }
 
@@ -39,14 +40,18 @@ public class Plugin : BaseUnityPlugin
         {
             Order = 1000
         }));
-
-        Brightness = Config.Bind("Main", "Brightness", 1.0f, new ConfigDescription("Added brightness", new AcceptableValueRange<float>(0f, 1f), new ConfigurationManagerAttributes
+        Hotkey = Config.Bind("Main", "Hotkey", new KeyboardShortcut(KeyCode.None), new ConfigDescription("Toggle tweaks on hotkey", tags: new ConfigurationManagerAttributes
         {
             Order = 999
         }));
-        Exposure = Config.Bind("Main", "Exposure", .3f, new ConfigDescription("Extended exposure range, mainly affects dark areas", new AcceptableValueRange<float>(0f, .5f), new ConfigurationManagerAttributes
+
+        Brightness = Config.Bind("Main", "Brightness", 1.0f, new ConfigDescription("Added brightness", new AcceptableValueRange<float>(0f, 1f), new ConfigurationManagerAttributes
         {
             Order = 998
+        }));
+        Exposure = Config.Bind("Main", "Exposure", .3f, new ConfigDescription("Extended exposure range, mainly affects dark areas", new AcceptableValueRange<float>(0f, .5f), new ConfigurationManagerAttributes
+        {
+            Order = 997
         }));
 
         FixEnabled.SettingChanged += OnSettingsChanged;
@@ -55,14 +60,12 @@ public class Plugin : BaseUnityPlugin
         Exposure.SettingChanged += OnSettingsChanged;
     }
 
-#if DEBUG
     private void Update()
     {
-        if (!Input.GetKeyDown(KeyCode.Insert)) return;
+        if (!Hotkey.Value.IsDown()) return;
 
         FixEnabled.Value = !FixEnabled.Value;
     }
-#endif
 
     private void OnDestroy()
     {
